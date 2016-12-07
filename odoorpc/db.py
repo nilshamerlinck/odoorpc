@@ -21,6 +21,9 @@
 """Provide the :class:`DB` class to manage the server databases."""
 import base64
 import io
+from urllib import urlencode
+import shutil
+
 import sys
 # Python 2
 if sys.version_info[0] < 3:
@@ -135,6 +138,25 @@ class DB(object):
         content = base64.standard_b64decode(result)
         return io.BytesIO(content)
 
+    def dump_via_http_and_save_as(self, password, db, format_='zip', filename=None):
+        # first get Cookie if <= v9
+        # cf https://github.com/odoo/odoo/commit/54e4f3f96b0a93bbdee5cdffd6f671b812644a67
+        if v(self._odoo.version)[0] <= 9:
+            r = self._odoo.http('web/login?db=' + db)
+            r.read()
+        
+        dump = self._odoo.http(
+            'web/database/backup',
+            urlencode({'master_pwd': password,
+                       'name': db,
+                       'backup_format': format_}))
+
+        if not filename:
+            filename = db + '.' + format_        
+        
+        with open(filename, 'wb') as f:
+            shutil.copyfileobj(dump, f)
+    
     def change_password(self, password, new_password):
         """Change the administrator password by `new_password`.
 

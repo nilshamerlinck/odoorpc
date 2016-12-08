@@ -21,16 +21,16 @@
 """Provide the :class:`DB` class to manage the server databases."""
 import base64
 import io
-from urllib import urlencode
 import shutil
-
 import sys
 # Python 2
 if sys.version_info[0] < 3:
+    from urllib import urlencode
     def encode2bytes(data):
         return data
 # Python >= 3
 else:
+    from urllib.parse import urlencode
     def encode2bytes(data):
         return bytes(data, 'ascii')
 
